@@ -106,9 +106,34 @@ exports.getProfileInformation = (req, res) => {
 
 // TODO #3.2: Send "GET" request to CV endpoint to get all courses that you enrolled
 exports.getCourses = (req, res) => {
-  // You should change the response below.
-  res.send("This route should get all courses that you enrolled.");
-  res.end();
+  try {
+    const CourseOptions = {
+      headers: {
+        Authorization: `Bearer ${req.session.token.access_token}`,
+      },
+    };
+    const CourseReq = https.request(
+      "https://www.mycourseville.com/api/v1/public/get/user/courses",
+      CourseOptions,
+      (CourseRes) => {
+        let CourseData = "";
+        CourseRes.on("data", (chunk) => {
+          CourseData += chunk;
+        });
+        CourseRes.on("end", () => {
+          const profile = JSON.parse(CourseData);
+          res.send(profile);
+          res.end();
+        });
+      }
+    );
+    CourseReq.on("error", (err) => {
+      console.error(err);
+    });
+    CourseReq.end();
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 // TODO #3.4: Send "GET" request to CV endpoint to get all course assignments based on cv_cid
